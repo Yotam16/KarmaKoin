@@ -1,0 +1,28 @@
+# Node.js dependencies
+node_modules/
+dist/
+
+# TypeScript build output
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# VS Code settings
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Frontend build output (Vite)
+frontend/dist/
+
+# Optional: JetBrains IDE
+.idea/
