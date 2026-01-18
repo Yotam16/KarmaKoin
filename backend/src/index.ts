@@ -98,7 +98,7 @@ function getBalance(userId: string): number {
 /* ---------------------------------------------
    Demo
 ---------------------------------------------- */
-
+/*
 const sender = users[0];
 const receiver = users[1];
 
@@ -111,3 +111,4 @@ addTransaction(sender.id, receiver.id, 10, "Guitar lesson");
 
 console.log(`${sender.name} balance:`, getBalance(sender.id));
 console.log(`${receiver.name} balance:`, getBalance(receiver.id));
+*/

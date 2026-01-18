@@ -1,4 +1,4 @@
-import { User } from "./identity";
+import type { User } from "./user";
 
 export interface Transaction {
   id: string;
@@ -15,6 +15,7 @@ export interface Block {
   transactions: Transaction[];
   previousHash: string;
   hash: string;
+  nonce: number;
 }
 
 export interface HistoricBlock {
