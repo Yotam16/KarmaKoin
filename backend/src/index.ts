@@ -1,14 +1,17 @@
+
 const fs = require("fs");
 const path = require("path");
-import type { Blockchain } from "./types/ledger";
-import type { User } from "./types/identity";
 const crypto = require("crypto");
+const { randomUUID } = crypto;
+import type { User } from "./types/user";
+import type { Blockchain } from "./types/blockchain";
+
 
 /* ---------------------------------------------
    Load users from JSON
 ---------------------------------------------- */
 
-const usersFilePath = path.join(__dirname, "../data/mock-users.json");
+const usersFilePath = path.join(__dirname, "../../data/mock-users.json"); 
 const users: User[] = JSON.parse(fs.readFileSync(usersFilePath, "utf-8"));
 
 /* ---------------------------------------------
@@ -66,7 +69,7 @@ function addTransaction(
   }
 
   chain.pendingTransactions.push({
-    id: crypto.randomUUID(),
+    id: randomUUID(), // fixed import from crypto
     fromUserId,
     toUserId,
     amount,
@@ -91,6 +94,7 @@ function getBalance(userId: string): number {
 
   return balance;
 }
+
 /* ---------------------------------------------
    Demo
 ---------------------------------------------- */
