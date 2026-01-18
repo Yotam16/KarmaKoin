@@ -68,6 +68,10 @@ export class Blockchain {
     return true;
   }
 
+  getLatestBlock(): Block {
+  return this.chain[this.chain.length - 1];
+}
+
   saveChain() {
     fs.writeFileSync(CHAIN_FILE, JSON.stringify(this.chain, null, 2));
   }
