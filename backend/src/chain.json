@@ -90,5 +90,47 @@
     "previousHash": "0000f005126df5d337c223a780d4227fc515fd0c03bc4333844589647a201482",
     "hash": "0000ba8eba63918d728197ea55f8fc225f9f6df001d8a90a5fbf70e46ef9300c",
     "nonce": 55438
+  },
+  {
+    "index": 6,
+    "timestamp": 1768927528055,
+    "transactions": [
+      {
+        "id": "tx1",
+        "fromUserId": "u1",
+        "toUserId": "u2",
+        "amount": 50,
+        "description": "Alice sends Bob 50 Koin",
+        "timestamp": 1768927528054
+      },
+      {
+        "id": "tx2",
+        "fromUserId": "u2",
+        "toUserId": "u3",
+        "amount": 25,
+        "description": "Bob sends Charlie 25 Koin",
+        "timestamp": 1768927528054
+      }
+    ],
+    "previousHash": "0000ba8eba63918d728197ea55f8fc225f9f6df001d8a90a5fbf70e46ef9300c",
+    "hash": "00005abefc38d34d4d15273b4b9a925752344e72fef60b28dd9220d0da5a2f59",
+    "nonce": 19825
+  },
+  {
+    "index": 7,
+    "timestamp": 1768927528104,
+    "transactions": [
+      {
+        "id": "tx3",
+        "fromUserId": "u3",
+        "toUserId": "u1",
+        "amount": 10,
+        "description": "Charlie sends Alice 10 Koin",
+        "timestamp": 1768927528104
+      }
+    ],
+    "previousHash": "00005abefc38d34d4d15273b4b9a925752344e72fef60b28dd9220d0da5a2f59",
+    "hash": "0000dce9e83bc7f59425073ca2bc064d1b7e5c8756e4de1ed471d10587001fbe",
+    "nonce": 61985
   }
 ]

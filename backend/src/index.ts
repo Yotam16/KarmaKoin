@@ -1,17 +1,23 @@
+import express from "express";
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
 
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
-const { randomUUID } = crypto;
+import { Blockchain } from "./blockchain-engine";
 import type { User } from "./types/user";
-import type { Blockchain } from "./types/blockchain";
 
+const { randomUUID } = crypto;
+
+const app = express();
+const PORT = 3001;
+
+app.use(express.json());
 
 /* ---------------------------------------------
    Load users from JSON
 ---------------------------------------------- */
 
-const usersFilePath = path.join(__dirname, "../../data/mock-users.json"); 
+const usersFilePath = path.join(__dirname, "../../data/mock-users.json");
 const users: User[] = JSON.parse(fs.readFileSync(usersFilePath, "utf-8"));
 
 /* ---------------------------------------------
@@ -24,7 +30,7 @@ for (const user of users) {
 }
 
 /* ---------------------------------------------
-   User ID validation
+   User validation
 ---------------------------------------------- */
 
 function isValidUserIdFormat(id: string): boolean {
@@ -42,73 +48,66 @@ function assertUserExists(userId: string): void {
 }
 
 /* ---------------------------------------------
-   Initialize blockchain (in-memory)
+   Initialize blockchain engine
 ---------------------------------------------- */
 
-const chain: Blockchain = {
-  chain: [],
-  historicBlocks: [],
-  pendingTransactions: []
-};
+const blockchain = new Blockchain();
 
 /* ---------------------------------------------
-   Create a transaction safely
+   Routes
 ---------------------------------------------- */
 
-function addTransaction(
-  fromUserId: string,
-  toUserId: string,
-  amount: number,
-  description: string
-) {
-  assertUserExists(fromUserId);
-  assertUserExists(toUserId);
-
-  if (amount <= 0) {
-    throw new Error("Transaction amount must be positive");
-  }
-
-  chain.pendingTransactions.push({
-    id: randomUUID(), // fixed import from crypto
-    fromUserId,
-    toUserId,
-    amount,
-    description,
-    timestamp: Date.now()
+app.get("/status", (_req, res) => {
+  res.json({
+    blocks: blockchain.chain.length,
+    pendingTransactions: blockchain.pendingTransactions.length,
+    isValid: blockchain.isChainValid(),
   });
-}
+});
 
-/* ---------------------------------------------
-   Balance calculation (naive, correct)
----------------------------------------------- */
+app.get("/chain", (_req, res) => {
+  res.json(blockchain.chain);
+});
 
-function getBalance(userId: string): number {
-  assertUserExists(userId);
+app.get("/users", (_req, res) => {
+  res.json(users);
+});
 
-  let balance = 0;
+app.post("/transaction", (req, res) => {
+  try {
+    const { fromUserId, toUserId, amount, description } = req.body;
 
-  for (const tx of chain.pendingTransactions) {
-    if (tx.fromUserId === userId) balance -= tx.amount;
-    if (tx.toUserId === userId) balance += tx.amount;
+    assertUserExists(fromUserId);
+    assertUserExists(toUserId);
+
+    if (amount <= 0) {
+      return res.status(400).json({ error: "Amount must be positive" });
+    }
+
+    blockchain.addTransaction({
+      id: randomUUID(),
+      fromUserId,
+      toUserId,
+      amount,
+      description: description ?? "",
+      timestamp: Date.now(),
+    });
+
+    res.json({ message: "Transaction added" });
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
   }
+});
 
-  return balance;
-}
+app.post("/mine", (_req, res) => {
+  const block = blockchain.minePendingTransactions();
+  res.json(block);
+});
 
 /* ---------------------------------------------
-   Demo
+   Start server
 ---------------------------------------------- */
-/*
-const sender = users[0];
-const receiver = users[1];
 
-if (!sender || !receiver) {
-  throw new Error("Not enough users in mock-users.json to run demo");
-}
-
-// Add a transaction
-addTransaction(sender.id, receiver.id, 10, "Guitar lesson");
-
-console.log(`${sender.name} balance:`, getBalance(sender.id));
-console.log(`${receiver.name} balance:`, getBalance(receiver.id));
-*/
+app.listen(PORT, () => {
+  console.log(`KarmaKoin API running at http://localhost:${PORT}`);
+});
