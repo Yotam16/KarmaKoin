@@ -3,6 +3,8 @@ import crypto from "crypto";
 import type { User } from "../types/user";
 import type { Transaction } from "../types/blockchain";
 
+export const SYSTEM_USER_ID = "SYSTEM";
+
 export class CoinApp {
   // Map userId → balance
   private wallets: Record<User["id"], number> = {};
@@ -36,7 +38,7 @@ export class CoinApp {
 
     this.recordTransaction({
       id: crypto.randomUUID(),
-      fromUserId: "SYSTEM" as User["id"], // SYSTEM pseudo-user
+      fromUserId: "SYSTEM" as User["id"],
       toUserId,
       amount,
       description,
