@@ -1,9 +1,8 @@
-// backend/src/index.ts
-
 import express from "express";
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
+import open from "open";
 
 import { Blockchain } from "./blockchain-engine";
 import { CoinApp } from "./coin/coinapp";
@@ -15,6 +14,7 @@ const app = express();
 const PORT = 3001;
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "../public")));
 
 /* ---------------------------------------------
    Load users from JSON
@@ -181,7 +181,12 @@ app.post("/transfer", (req, res) => {
 
     if (amount <= 0) throw new Error("Amount must be positive");
 
-    coinApp.transfer(fromUserId, toUserId, amount, description ?? "Transfer via API");
+    coinApp.transfer(
+      fromUserId,
+      toUserId,
+      amount,
+      description ?? "Transfer via API"
+    );
 
     res.json({ message: "Transfer successful" });
   } catch (err) {
@@ -199,4 +204,5 @@ app.get("/ledger", (_req, res) => {
 ---------------------------------------------- */
 app.listen(PORT, () => {
   console.log(`KarmaKoin API running at http://localhost:${PORT}`);
+  open(`http://localhost:${PORT}/`);
 });
