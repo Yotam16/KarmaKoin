@@ -1,3 +1,8 @@
+/* -----------------------------------------------------------------
+    This is what needs to be rewritten when switching to a real DB
+-------------------------------------------------------------------- */
+
+
 import fs from "fs";
 import path from "path";
 import type { Transaction } from "../types/blockchain";

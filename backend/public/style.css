@@ -1,0 +1,63 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: monospace;
+  background-color: #000000;
+  color: #00FF00;
+}
+
+h1, h2 {
+  color: #00FF00;
+}
+
+input, button {
+  background-color: #000000;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+  font-family: monospace;
+  font-size: 14px;
+  margin: 0.25rem;
+  padding: 0.25rem 0.5rem;
+}
+
+button:hover {
+  background-color: #003300;
+  cursor: pointer;
+}
+
+/* ---------------- Layout ---------------- */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+#outputPanel {
+  flex: 1;
+  background-color: #000000;
+  border: 1px solid #00FF00;
+  padding: 0.5rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin-bottom: 0.25rem;
+}
+
+#clearBtn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+#outputPanel h3 {
+  margin-top: 0;
+  text-align: center;
+}
