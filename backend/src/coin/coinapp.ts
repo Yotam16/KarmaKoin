@@ -1,81 +1,116 @@
-// backend/src/coin/CoinApp.ts
+// backend/src/coin/coinapp.ts
+
 import crypto from "crypto";
 import type { User } from "../types/user";
 import type { Transaction } from "../types/blockchain";
 
-export const SYSTEM_USER_ID = "SYSTEM";
+import * as userDb from "../db/userDB";
+import * as ledgerDb from "../db/ledgerDB";
+
+export const SYSTEM_USER_ID = "SYSTEM" as User["id"];
 
 export class CoinApp {
-  // Map userId → balance
-  private wallets: Record<User["id"], number> = {};
-
-  // Ledger of all transactions
-  private ledger: Transaction[] = [];
-
-  /* -----------------------------
-     Wallets
-  ------------------------------ */
-
-  createWallet(userId: User["id"]): void {
-    if (this.wallets[userId] !== undefined) {
-      throw new Error("Wallet already exists");
-    }
-    this.wallets[userId] = 0;
-  }
+  /* ---------------------------------------------
+     Wallets (derived, not stored)
+  ---------------------------------------------- */
 
   getBalance(userId: User["id"]): number {
-    return this.wallets[userId] ?? 0;
+    return ledgerDb.getBalanceForUser(userId);
   }
 
-  /* -----------------------------
+  /* ---------------------------------------------
+     Wallet creation (explicit but idempotent)
+  ---------------------------------------------- */
+
+  createWallet(userId: User["id"]): void {
+    // Wallet existence is implied by user existence
+    userDb.assertUserExists(userId);
+  }
+
+  /* ---------------------------------------------
      Minting / system credit
-  ------------------------------ */
+  ---------------------------------------------- */
 
-  mint(toUserId: User["id"], amount: number, description = "Initial credit"): void {
-    if (amount <= 0) throw new Error("Mint amount must be positive");
+  mint(
+    toUserId: User["id"],
+    amount: number,
+    description = "Minted by system"
+  ): {
+    transaction: Transaction;
+    toBalance: number;
+  } {
+    if (amount <= 0) {
+      throw new Error("Mint amount must be positive");
+    }
 
-    this.wallets[toUserId] = (this.wallets[toUserId] ?? 0) + amount;
+    userDb.assertUserExists(toUserId);
 
-    this.recordTransaction({
+    const tx: Transaction = {
       id: crypto.randomUUID(),
-      fromUserId: "SYSTEM" as User["id"],
+      fromUserId: SYSTEM_USER_ID,
       toUserId,
       amount,
       description,
       timestamp: Date.now(),
-    });
+    };
+
+    ledgerDb.addTransaction(tx);
+
+    return {
+      transaction: tx,
+      toBalance: this.getBalance(toUserId),
+    };
   }
 
-  /* -----------------------------
+  /* ---------------------------------------------
      Transfers between users
-  ------------------------------ */
+  ---------------------------------------------- */
 
-  transfer(fromUserId: User["id"], toUserId: User["id"], amount: number, description = ""): void {
-    if (amount <= 0) throw new Error("Transfer amount must be positive");
-    if (this.getBalance(fromUserId) < amount) throw new Error("Insufficient balance");
+  transfer(
+    fromUserId: User["id"],
+    toUserId: User["id"],
+    amount: number,
+    description = ""
+  ): {
+    transaction: Transaction;
+    fromBalance: number;
+    toBalance: number;
+  } {
+    if (amount <= 0) {
+      throw new Error("Transfer amount must be positive");
+    }
 
-    this.wallets[fromUserId] -= amount;
-    this.wallets[toUserId] = (this.wallets[toUserId] ?? 0) + amount;
+    userDb.assertUserExists(fromUserId);
+    userDb.assertUserExists(toUserId);
 
-    this.recordTransaction({
+    const fromBalance = this.getBalance(fromUserId);
+    if (fromBalance < amount) {
+      throw new Error("Insufficient balance");
+    }
+
+    const tx: Transaction = {
       id: crypto.randomUUID(),
       fromUserId,
       toUserId,
       amount,
       description,
       timestamp: Date.now(),
-    });
+    };
+
+    ledgerDb.addTransaction(tx);
+
+    return {
+      transaction: tx,
+      fromBalance: this.getBalance(fromUserId),
+      toBalance: this.getBalance(toUserId),
+    };
   }
 
-  /* -----------------------------
-     Ledger
-  ------------------------------ */
-
-  private recordTransaction(tx: Transaction): void {
-    this.ledger.push(tx);
-  }
+  /* ---------------------------------------------
+     Ledger access
+  ---------------------------------------------- */
 
   getLedger(): Transaction[] {
-    return this.ledger;
+    return ledgerDb.getAllTransactions();
   }
 }

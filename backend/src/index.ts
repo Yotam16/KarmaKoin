@@ -1,57 +1,35 @@
 import express from "express";
-import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import open from "open";
 
 import { Blockchain } from "./blockchain-engine";
-import { CoinApp } from "./coin/coinapp";
+import { CoinApp, SYSTEM_USER_ID } from "./coin/coinapp";
 import type { User } from "./types/user";
 
-const { randomUUID } = crypto;
+import * as userDb from "./db/userDB";
+import * as ledgerDb from "./db/ledgerDB";
 
 const app = express();
 const PORT = 3001;
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../public")));
 
-/* ---------------------------------------------
-   Load users from JSON
----------------------------------------------- */
-const usersFilePath = path.join(__dirname, "../../data/mock-users.json");
-const users: User[] = JSON.parse(fs.readFileSync(usersFilePath, "utf-8"));
-
-/* ---------------------------------------------
-   Build user index for fast lookup
----------------------------------------------- */
-const userIndex = new Map<string, User>();
-for (const user of users) {
-  userIndex.set(user.id, user);
-}
-
-/* ---------------------------------------------
-   User validation
----------------------------------------------- */
-function isValidUserIdFormat(id: string): boolean {
-  return /^[A-Za-z0-9]{8}$/.test(id);
-}
-
-function assertUserExists(userId: string): void {
-  if (!isValidUserIdFormat(userId)) {
-    throw new Error(`Invalid user ID format: ${userId}`);
-  }
-
-  if (!userIndex.has(userId)) {
-    throw new Error(`User does not exist: ${userId}`);
-  }
-}
+// Serve static frontend
+const frontendPath = path.join(__dirname, "../public");
+app.use(express.static(frontendPath));
 
 /* ---------------------------------------------
    Initialize blockchain engine & coin app
 ---------------------------------------------- */
 const blockchain = new Blockchain();
 const coinApp = new CoinApp();
+
+/* ---------------------------------------------
+   Helper for user ID validation
+---------------------------------------------- */
+function isValidUserIdFormat(id: string): boolean {
+  return /^[A-Za-z0-9]{8}$/.test(id);
+}
 
 /* ---------------------------------------------
    Routes
@@ -71,9 +49,9 @@ app.get("/chain", (_req, res) => {
   res.json(blockchain.chain);
 });
 
-// Return users
+// Return all users
 app.get("/users", (_req, res) => {
-  res.json(users);
+  res.json(userDb.getAllUsers());
 });
 
 // Add a transaction to blockchain
@@ -81,15 +59,13 @@ app.post("/transaction", (req, res) => {
   try {
     const { fromUserId, toUserId, amount, description } = req.body;
 
-    assertUserExists(fromUserId);
-    assertUserExists(toUserId);
+    userDb.assertUserExists(fromUserId);
+    userDb.assertUserExists(toUserId);
 
-    if (amount <= 0) {
-      return res.status(400).json({ error: "Amount must be positive" });
-    }
+    if (amount <= 0) return res.status(400).json({ error: "Amount must be positive" });
 
     blockchain.addTransaction({
-      id: randomUUID(),
+      id: crypto.randomUUID(),
       fromUserId,
       toUserId,
       amount,
@@ -110,7 +86,7 @@ app.post("/mine", (_req, res) => {
 });
 
 /* ---------------------------------------------
-   CoinApp: mint and transfer with auto wallet creation
+   CoinApp: mint and transfer with DB-backed ledger
 ---------------------------------------------- */
 
 // Mint coins to a user
@@ -118,20 +94,11 @@ app.post("/mint", (req, res) => {
   try {
     const { toUserId, amount, description, create } = req.body;
 
-    if (!isValidUserIdFormat(toUserId)) {
-      throw new Error(`Invalid user ID format: ${toUserId}`);
-    }
+    if (!isValidUserIdFormat(toUserId)) throw new Error(`Invalid user ID format: ${toUserId}`);
 
-    // Auto-create wallet if flagged
-    if (!userIndex.has(toUserId)) {
+    if (!userDb.userExists(toUserId)) {
       if (create) {
-        const newUser: User = {
-          id: toUserId,
-          name: toUserId,
-          createdAt: Date.now(),
-        };
-        users.push(newUser);
-        userIndex.set(toUserId, newUser);
+        userDb.createUser(toUserId, toUserId);
         coinApp.createWallet(toUserId);
       } else {
         return res.status(400).json({
@@ -142,9 +109,12 @@ app.post("/mint", (req, res) => {
 
     if (amount <= 0) throw new Error("Amount must be positive");
 
-    coinApp.mint(toUserId, amount, description ?? "Mint via API");
+    const { transaction, toBalance } = coinApp.mint(toUserId, amount, description ?? "Mint via API");
 
-    res.json({ message: "Coins minted" });
+    res.json({
+      message: `Minted ${transaction.amount} coins to ${transaction.toUserId}`,
+      balance: toBalance,
+    });
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }
@@ -157,19 +127,11 @@ app.post("/transfer", (req, res) => {
 
     // Auto-create wallets if flagged
     for (const id of [fromUserId, toUserId]) {
-      if (!isValidUserIdFormat(id)) {
-        throw new Error(`Invalid user ID format: ${id}`);
-      }
+      if (!isValidUserIdFormat(id)) throw new Error(`Invalid user ID format: ${id}`);
 
-      if (!userIndex.has(id)) {
+      if (!userDb.userExists(id)) {
         if (create) {
-          const newUser: User = {
-            id,
-            name: id,
-            createdAt: Date.now(),
-          };
-          users.push(newUser);
-          userIndex.set(id, newUser);
+          userDb.createUser(id, id);
           coinApp.createWallet(id);
         } else {
           return res.status(400).json({
@@ -181,14 +143,18 @@ app.post("/transfer", (req, res) => {
 
     if (amount <= 0) throw new Error("Amount must be positive");
 
-    coinApp.transfer(
+    const { transaction, fromBalance, toBalance } = coinApp.transfer(
       fromUserId,
       toUserId,
       amount,
       description ?? "Transfer via API"
     );
 
-    res.json({ message: "Transfer successful" });
+    res.json({
+      message: `Transferred ${transaction.amount} coins from ${transaction.fromUserId} to ${transaction.toUserId}`,
+      fromBalance,
+      toBalance,
+    });
   } catch (err) {
     res.status(400).json({ error: (err as Error).message });
   }
@@ -200,7 +166,7 @@ app.get("/ledger", (_req, res) => {
 });
 
 /* ---------------------------------------------
-   Start server
+   Start server and open browser
 ---------------------------------------------- */
 app.listen(PORT, () => {
   console.log(`KarmaKoin API running at http://localhost:${PORT}`);

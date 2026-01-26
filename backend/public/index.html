@@ -2,22 +2,109 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>KarmaKoin</title>
+  <title>KarmaKoin UI</title>
   <style>
     body { font-family: sans-serif; margin: 2rem; }
-    h1 { color: #2c3e50; }
-    pre { background: #f4f4f4; padding: 1rem; }
+    input { margin: 0.25rem; width: 200px; }
+    button { margin: 0.5rem; padding: 0.5rem 1rem; }
+
+    #outputPanel {
+      position: fixed;
+      top: 50px;
+      right: 50px;
+      width: 350px;
+      height: 400px;
+      background: #fff;
+      border: 2px solid #333;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      padding: 1rem;
+      overflow-y: auto;
+      z-index: 9999;
+      font-size: 0.9rem;
+    }
+
+    #outputPanel h3 { margin-top:0; text-align:center; }
+    #outputPanel pre { background: #f4f4f4; padding: 0.5rem; white-space: pre-wrap; }
   </style>
 </head>
 <body>
-  <h1>Welcome to KarmaKoin</h1>
-  <p>API is running. You can interact with:</p>
-  <ul>
-    <li>/users → List users</li>
-    <li>/ledger → Coin ledger</li>
-    <li>/mint → Mint coins (POST)</li>
-    <li>/transfer → Transfer coins (POST)</li>
-  </ul>
-  <p>Use your browser console or tools like Postman/cURL to call the API.</p>
+  <h1>KarmaKoin Browser UI</h1>
+
+  <h2>Show all users</h2>
+  <button id="btnUsers">Show Users</button>
+
+  <h2>Mint Coins</h2>
+  <input id="mintUser" placeholder="To User ID"/>
+  <input id="mintAmount" placeholder="Amount" type="number"/>
+  <button id="btnMint">Mint</button>
+
+  <h2>Transfer Coins</h2>
+  <input id="fromUser" placeholder="From User ID"/>
+  <input id="toUser" placeholder="To User ID"/>
+  <input id="transferAmount" placeholder="Amount" type="number"/>
+  <button id="btnTransfer">Transfer</button>
+
+  <h2>Ledger</h2>
+  <button id="btnLedger">Show Ledger</button>
+
+  <div id="outputPanel">
+    <h3>Output</h3>
+    <pre id="outputContent">Welcome to KarmaKoin!</pre>
+  </div>
+
+  <script>
+    const API_BASE = "/";
+
+    function printOutput(msg) {
+      const panel = document.getElementById("outputContent");
+      const ts = new Date().toLocaleTimeString();
+      panel.textContent += `[${ts}] ${msg}\n\n`;
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    async function fetchJSON(url, options = {}) {
+      const res = await fetch(url, options);
+      return await res.json();
+    }
+
+    // Show users
+    document.getElementById("btnUsers").onclick = async () => {
+      const users = await fetchJSON(API_BASE + "users");
+      printOutput("Users:\n" + JSON.stringify(users, null, 2));
+    };
+
+    // Mint coins
+    document.getElementById("btnMint").onclick = async () => {
+      const user = document.getElementById("mintUser").value.trim();
+      const amount = Number(document.getElementById("mintAmount").value);
+      const data = await fetchJSON(API_BASE + "mint", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toUserId: user, amount, create: true })
+      });
+      if (data.error) printOutput("Error: " + data.error);
+      else printOutput(`${data.message}\nNew balance: ${data.balance}`);
+    };
+
+    // Transfer coins
+    document.getElementById("btnTransfer").onclick = async () => {
+      const fromUser = document.getElementById("fromUser").value.trim();
+      const toUser = document.getElementById("toUser").value.trim();
+      const amount = Number(document.getElementById("transferAmount").value);
+      const data = await fetchJSON(API_BASE + "transfer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fromUserId: fromUser, toUserId: toUser, amount, create: true })
+      });
+      if (data.error) printOutput("Error: " + data.error);
+      else printOutput(`${data.message}\n${fromUser} balance: ${data.fromBalance}\n${toUser} balance: ${data.toBalance}`);
+    };
+
+    // Show ledger
+    document.getElementById("btnLedger").onclick = async () => {
+      const ledger = await fetchJSON(API_BASE + "ledger");
+      printOutput("Ledger:\n" + JSON.stringify(ledger, null, 2));
+    };
+  </script>
 </body>
 </html>
