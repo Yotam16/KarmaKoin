@@ -1,13 +1,51 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <title>KarmaKoin UI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <h1>KarmaKoin Browser UI</h1>
+
+    <!-- Login Section -->
+    <div id="loginSection">
+      <h2>Login</h2>
+      <input id="loginUserId" placeholder="User ID"/>
+      <input id="loginPassword" placeholder="Password" type="password"/>
+      <button id="btnLogin">Login</button>
+      <p id="loginMsg"></p>
+    </div>
+
+    <!-- Main Controls (hidden until login) -->
+    <div id="mainControls" style="display:none;">
+      <h2>Show all users</h2>
+      <button id="btnUsers">Show Users</button>
+
+      <h2>Mint Coins</h2>
+      <input id="mintUser" placeholder="To User ID"/>
+      <input id="mintAmount" placeholder="Amount" type="number"/>
+      <button id="btnMint">Mint</button>
+
+      <h2>Transfer Coins</h2>
+      <input id="fromUser" placeholder="From User ID"/>
+      <input id="toUser" placeholder="To User ID"/>
+      <input id="transferAmount" placeholder="Amount" type="number"/>
+      <button id="btnTransfer">Transfer</button>
+
+      <h2>Ledger</h2>
+      <button id="btnLedger">Show Ledger</button>
+    </div>
+
+    <!-- Output Panel -->
+    <div id="outputPanel">
+      <h3>Output</h3>
+      <pre id="outputContent">Welcome to KarmaKoin!</pre>
+      <button id="clearBtn">Clear</button>
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+</body>
 </html>

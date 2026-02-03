@@ -50,7 +50,21 @@ export function userExists(userId: string): boolean {
   return !!getUserById(userId);
 }
 
-export function createUser(id: string, name?: string): User {
+/**
+ * Create a new user
+ * @param id - unique user ID
+ * @param fname - first name
+ * @param sname - surname
+ * @param password - user password
+ * @param role - 'admin' or 'user'
+ */
+export function createUser(
+  id: string,
+  fname?: string,
+  sname?: string,
+  password: string = "user",
+  role: "admin" | "user" = "user"
+): User {
   const users = readFile();
 
   if (users.some(u => u.id === id)) {
@@ -59,7 +73,10 @@ export function createUser(id: string, name?: string): User {
 
   const user: User = {
     id,
-    name: name ?? id,
+    fname: fname ?? id,
+    sname: sname ?? "",
+    password,
+    role,
     createdAt: Date.now(),
   };
 

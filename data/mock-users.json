@@ -1,52 +1,82 @@
 [
   {
     "id": "A7fK2mQ9",
-    "name": "Miles Davis",
+    "fname": "Miles",
+    "sname": "Davis",
+    "password": "admin",
+    "role": "admin",
     "createdAt": "2026-01-01T03:17:00Z"
   },
   {
     "id": "qP9Z4aT2",
-    "name": "John Coltrane",
+    "fname": "John",
+    "sname": "Coltrane",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T14:42:00Z"
   },
   {
     "id": "M3xA9pLk",
-    "name": "Bill Evans",
+    "fname": "Bill",
+    "sname": "Evans",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T09:05:00Z"
   },
   {
     "id": "7DkLQe2A",
-    "name": "Ella Fitzgerald",
+    "fname": "Ella",
+    "sname": "Fitzgerald",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T21:33:00Z"
   },
   {
     "id": "P8aL9Xk2",
-    "name": "Charlie Parker",
+    "fname": "Charlie",
+    "sname": "Parker",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T01:56:00Z"
   },
   {
     "id": "Z4mA8LQ2",
-    "name": "Thelonious Monk",
+    "fname": "Thelonious",
+    "sname": "Monk",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T18:11:00Z"
   },
   {
     "id": "K2A9mL8P",
-    "name": "Duke Ellington",
+    "fname": "Duke",
+    "sname": "Ellington",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T12:27:00Z"
   },
   {
     "id": "xA7P2L9m",
-    "name": "Dizzy Gillespie",
+    "fname": "Dizzy",
+    "sname": "Gillespie",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T06:49:00Z"
   },
   {
     "id": "9LQ2A8mP",
-    "name": "Herbie Hancock",
+    "fname": "Herbie",
+    "sname": "Hancock",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T16:08:00Z"
   },
   {
     "id": "A2P9mLQ8",
-    "name": "Chet Baker",
+    "fname": "Chet",
+    "sname": "Baker",
+    "password": "user",
+    "role": "user",
     "createdAt": "2026-01-01T23:41:00Z"
   }
 ]

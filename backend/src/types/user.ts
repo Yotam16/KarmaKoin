@@ -1,6 +1,8 @@
 export type User = {
   id: string;
-  name: string;
-  createdAt: number;
-  karmaBalance?: number;
-}
+  fname: string;
+  sname: string;
+  password: string;
+  role: "admin" | "user";
+  createdAt: number; 
+};
